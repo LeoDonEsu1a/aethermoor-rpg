@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aethermoor Chronicles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ===== SCREENS ===== -->
+
+<div id="screen-intro" class="screen active">
+  <div class="intro-bg"></div>
+  <div class="intro-content">
+    <div class="title-rune">⚜</div>
+    <h1 class="game-title">Aethermoor<br><span>Chronicles</span></h1>
+    <p class="game-subtitle">Un mondo dimenticato. Un destino da scrivere.</p>
+    <button class="btn-primary" onclick="showScreen('screen-newgame')">Inizia l'avventura</button>
+    <button class="btn-secondary" onclick="showScreen('screen-leaderboard')">⚔ Classifica Eroi</button>
+    <button class="btn-secondary" onclick="loadGame()">📜 Continua</button>
+  </div>
+  <canvas id="particle-canvas"></canvas>
+</div>
+
+<div id="screen-newgame" class="screen">
+  <div class="panel-container">
+    <h2 class="panel-title">Scegli il tuo Destino</h2>
+    <div class="name-input-wrap">
+      <label>Nome dell'Eroe</label>
+      <input type="text" id="hero-name" placeholder="Inserisci il tuo nome..." maxlength="20" />
+    </div>
+    <div class="class-grid" id="class-grid"></div>
+    <div class="class-detail" id="class-detail">
+      <p style="color:var(--text-dim);text-align:center;padding:2rem;">← Seleziona una classe per vedere i dettagli</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="showScreen('screen-intro')">← Indietro</button>
+      <button class="btn-primary" id="btn-start" onclick="startGame()" disabled>Inizia ⚔</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-name" id="hud-name">Eroe</div>
+      <div class="hud-class" id="hud-class">Guerriero</div>
+      <div class="hud-level">LV <span id="hud-level">1</span></div>
+    </div>
+    <div class="hud-bars">
+      <div class="bar-wrap"><span>HP</span><div class="bar"><div id="bar-hp" class="bar-fill hp"></div></div><span id="val-hp">100/100</span></div>
+      <div class="bar-wrap"><span>MP</span><div class="bar"><div id="bar-mp" class="bar-fill mp"></div></div><span id="val-mp">50/50</span></div>
+      <div class="bar-wrap"><span>XP</span><div class="bar"><div id="bar-xp" class="bar-fill xp"></div></div><span id="val-xp">0/100</span></div>
+    </div>
+    <div class="hud-right">
+      <button class="hud-btn" onclick="showScreen('screen-inventory')">🎒 Inventario</button>
+      <button class="hud-btn" onclick="showScreen('screen-leaderboard')">🏆 Classifica</button>
+      <button class="hud-btn" onclick="saveGame()">💾 Salva</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="zone-panel">
+      <h3 id="zone-name">Pianure d'Aether</h3>
+      <p id="zone-desc">Un vasto campo nebuloso, residuo di antiche battaglie magiche.</p>
+      <div class="zone-actions">
+        <button class="btn-zone" onclick="exploreZone()">🗺 Esplora</button>
+        <button class="btn-zone" onclick="showScreen('screen-dungeon')">⚔ Dungeon</button>
+        <button class="btn-zone" onclick="visitShop()">🏪 Negozio</button>
+        <button class="btn-zone" onclick="rest()">🛌 Riposa</button>
+      </div>
+    </div>
+
+    <div class="combat-log" id="combat-log">
+      <p class="log-entry system">Benvenuto in Aethermoor. Il tuo destino ti attende...</p>
+    </div>
+
+    <canvas id="game-canvas" width="320" height="320"></canvas>
+  </div>
+</div>
+
+<div id="screen-combat" class="screen">
+  <div class="combat-screen">
+    <div class="enemy-area">
+      <canvas id="enemy-canvas" width="200" height="200"></canvas>
+      <div class="enemy-info">
+        <div id="enemy-name" class="enemy-name">Goblin</div>
+        <div class="bar-wrap"><span>HP</span><div class="bar"><div id="bar-enemy-hp" class="bar-fill hp"></div></div><span id="val-enemy-hp">50/50</span></div>
+        <div id="enemy-level-tag" class="enemy-level">Lv.1</div>
+      </div>
+    </div>
+
+    <div id="combat-messages" class="combat-messages"></div>
+
+    <div class="player-combat-info">
+      <div class="bar-wrap"><span>HP</span><div class="bar"><div id="bar-phero-hp" class="bar-fill hp"></div></div><span id="val-phero-hp">100/100</span></div>
+      <div class="bar-wrap"><span>MP</span><div class="bar"><div id="bar-phero-mp" class="bar-fill mp"></div></div><span id="val-phero-mp">50/50</span></div>
+    </div>
+
+    <div class="action-buttons" id="action-buttons">
+      <button class="btn-action attack" onclick="combatAction('attack')">⚔ Attacca</button>
+      <div id="skill-buttons"></div>
+      <button class="btn-action item" onclick="combatAction('item')">🧪 Oggetto</button>
+      <button class="btn-action flee" onclick="combatAction('flee')">🏃 Fuggi</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-inventory" class="screen">
+  <div class="panel-container">
+    <h2 class="panel-title">Inventario</h2>
+    <div class="inventory-stats" id="inventory-stats"></div>
+    <div class="inventory-grid" id="inventory-grid"></div>
+    <div class="item-detail" id="item-detail">
+      <p style="color:var(--text-dim);text-align:center;">Seleziona un oggetto per i dettagli</p>
+    </div>
+    <button class="btn-secondary" onclick="showScreen('screen-game')">← Torna al gioco</button>
+  </div>
+</div>
+
+<div id="screen-leaderboard" class="screen">
+  <div class="panel-container">
+    <h2 class="panel-title">🏆 Classifica Eroi</h2>
+    <div id="leaderboard-list" class="leaderboard-list">
+      <p style="color:var(--text-dim);text-align:center;">Caricamento...</p>
+    </div>
+    <button class="btn-secondary" onclick="showScreen('screen-intro')">← Indietro</button>
+  </div>
+</div>
+
+<div id="screen-dungeon" class="screen">
+  <div class="panel-container">
+    <h2 class="panel-title">⚔ Scegli il Dungeon</h2>
+    <div id="dungeon-list" class="dungeon-list"></div>
+    <button class="btn-secondary" onclick="showScreen('screen-game')">← Torna al gioco</button>
+  </div>
+</div>
+
+<!-- Reward overlay -->
+<div id="reward-overlay" class="overlay hidden">
+  <div class="reward-box">
+    <div class="reward-title" id="reward-title">Vittoria!</div>
+    <div class="reward-ai-comment" id="reward-ai-comment"></div>
+    <div class="reward-items" id="reward-items"></div>
+    <div class="reward-xp" id="reward-xp"></div>
+    <button class="btn-primary" onclick="closeReward()">Continua →</button>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="overlay hidden">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div id="loading-text">Caricamento...</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Scripts -->
+<script src="js/classes.js"></script>
+<script src="js/loot.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/ai-rewards.js"></script>
+<script src="js/game.js"></script>
+
+</body>
+</html>
